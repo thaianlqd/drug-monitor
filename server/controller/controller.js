@@ -110,3 +110,30 @@ exports.delete = (req,res)=>{
         });
 
 }
+
+//purchase: mua thuốc
+exports.purchase = (req, res) => {
+    const { days } = req.body;
+    if (!days || isNaN(days) || days <= 0) {
+        return res.status(400).json({ message: "Invalid number of days" });
+    }
+
+    Drugdb.find()
+        .then(drugs => {
+            if (!drugs || drugs.length === 0) {
+                return res.status(404).json({ message: "No drugs found" });
+            }
+            const purchaseData = drugs.map(drug => ({
+                name: drug.name,
+                cardsToBuy: Math.ceil((days * drug.perDay) / drug.card),
+                packsToBuy: Math.ceil((days * drug.perDay) / drug.pack)
+            }));
+            res.status(200).json({
+                message: "Purchase calculated successfully",
+                data: purchaseData
+            });
+        })
+        .catch(err => {
+            res.status(500).json({ message: "Error calculating purchase: " + err.message });
+        });
+};
